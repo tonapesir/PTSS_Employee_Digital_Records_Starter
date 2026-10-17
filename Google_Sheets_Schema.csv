@@ -1,0 +1,30 @@
+Sheet,Column,Meaning,Example
+Schools,School_ID,Unique school key,SCH001
+Schools,School_Name,School name,श्री गो. से. हायस्कूल पाचोरा
+Schools,Active,TRUE/FALSE,TRUE
+Employees,Shalarth_ID,Unique employee key,SHAL123456
+Employees,Employee_Name,Employee full name,कर्मचारी नाव
+Employees,School_ID,Must match Schools.School_ID,SCH001
+Employees,Designation,Designation,शिक्षक
+Employees,Active,TRUE/FALSE,TRUE
+DocumentTypes,Doc_ID,Unique document type key,DOC001
+DocumentTypes,Document_Name,Document type,नियुक्ती आदेश
+DocumentTypes,Category,Optional grouping,सेवा विषयक
+DocumentTypes,Active,TRUE/FALSE,TRUE
+DocumentTypes,Sort_Order,Numeric display order,1
+Users,Email,Google login email,staff@example.org
+Users,Role,ADMIN or STAFF,STAFF
+Users,School_ID,Required for STAFF; blank for ADMIN,SCH001
+Users,Active,TRUE/FALSE,TRUE
+UploadLog,Upload_ID,Unique upload UUID,auto
+UploadLog,Date_Time,Upload timestamp,auto
+UploadLog,Shalarth_ID,Employee key,auto
+UploadLog,School_ID,School key,auto
+UploadLog,Doc_ID,Document type key,auto
+UploadLog,File_Name,Stored PDF name,auto
+UploadLog,Drive_File_ID,Google Drive file ID,auto
+UploadLog,Uploaded_By,Uploader email,auto
+UploadLog,Status,SUCCESS/FAILED,SUCCESS
+UploadLog,Size_Bytes,File size in bytes,auto
+Settings,Setting_Key,Optional notes/config,ROOT_FOLDER_ID
+Settings,Setting_Value,Optional notes/config,Drive folder ID

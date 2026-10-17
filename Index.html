@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    :root{font-family:Arial,"Noto Sans Devanagari",sans-serif;color:#182230;background:#f3f6fa}
+    body{margin:0;padding:18px}
+    .wrap{max-width:980px;margin:auto}
+    header{background:#173b63;color:#fff;padding:22px;border-radius:14px;margin-bottom:16px}
+    h1{font-size:23px;margin:0 0 8px} header p{margin:0;opacity:.9}
+    .card{background:white;border:1px solid #dce4ee;border-radius:12px;padding:18px;margin:14px 0;box-shadow:0 3px 12px #18324b0a}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    label{display:block;font-weight:700;font-size:14px;margin:0 0 6px}
+    select,input{box-sizing:border-box;width:100%;padding:11px;border:1px solid #b8c5d5;border-radius:8px;background:#fff;font-size:15px}
+    button{border:0;border-radius:8px;padding:11px 15px;font-weight:700;cursor:pointer;margin:5px 6px 5px 0}
+    .primary{background:#1769aa;color:white}.secondary{background:#e7edf5;color:#19344f}.danger{background:#fae5e5;color:#9b2020}
+    .hint{font-size:13px;color:#536477;line-height:1.55}
+    .status{padding:10px;border-radius:8px;margin-top:10px;white-space:pre-wrap}
+    .ok{background:#e6f6ed;color:#135c35}.err{background:#fff0ef;color:#8d201b}.warn{background:#fff6df;color:#704f00}
+    .hidden{display:none}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .pill{display:inline-block;padding:4px 8px;background:#edf3f9;border-radius:999px;font-size:12px}
+    @media(max-width:650px){.grid{grid-template-columns:1fr}body{padding:10px}header{padding:16px}h1{font-size:20px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>कर्मचारी डिजिटल अभिलेख प्रणाली</h1>
+    <p>पाचोरा तालुका सहकारी शिक्षण संस्था • Google Drive आधारित</p>
+  </header>
+
+  <div class="card">
+    <div id="signedIn" class="hint">वापरकर्ता पडताळणी सुरू आहे…</div>
+    <div class="grid" style="margin-top:14px">
+      <div><label for="school">शाळा निवडा</label><select id="school"><option value="">लोड होत आहे…</option></select></div>
+      <div><label for="employee">कर्मचारी निवडा</label><select id="employee" disabled><option value="">प्रथम शाळा निवडा</option></select></div>
+      <div><label for="shalarth">Shalarth ID</label><input id="shalarth" readonly placeholder="कर्मचारी निवडल्यानंतर दिसेल"></div>
+      <div><label for="docType">कागदपत्राचा प्रकार</label><select id="docType"><option value="">लोड होत आहे…</option></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>१. स्कॅनिंग</h3>
+    <p class="hint">थेट स्कॅनिंगसाठी या संगणकावर NAPS2 आणि स्थानिक स्कॅनिंग सहाय्यक सुरू असणे आवश्यक आहे. स्कॅन पूर्ण झाल्यावर PDF ब्राउझरच्या Downloads फोल्डरमध्ये सेव्ह केली जाईल. स्थानिक सहाय्यकाची उपलब्धता स्कॅनर/ड्रायव्हरवर अवलंबून आहे.</p>
+    <div class="row">
+      <button class="primary" id="scanBtn" onclick="scanDocument()">स्कॅन करा आणि PDF तयार करा</button>
+      <span class="pill" id="scannerState">स्कॅनर तपासत आहे…</span>
+    </div>
+    <div id="scanStatus" class="status hidden"></div>
+  </div>
+
+  <div class="card">
+    <h3>२. PDF निवडा / लोकल सेव्ह</h3>
+    <label for="pdfFile">आधीच स्कॅन केलेली PDF निवडा (पर्यायी)</label>
+    <input type="file" id="pdfFile" accept="application/pdf,.pdf">
+    <p class="hint">स्कॅन बटण वापरल्यास तयार PDF लोकलमध्ये डाउनलोड होते आणि त्याच PDF ला अपलोडसाठी वापरले जाते. अन्यथा येथे PDF निवडा. मोठ्या फाइलसाठी 10 MB मर्यादा आहे.</p>
+    <div id="fileStatus" class="hint">अद्याप PDF निवडलेली नाही.</div>
+  </div>
+
+  <div class="card">
+    <h3>३. Google Drive मध्ये अपलोड</h3>
+    <button class="primary" id="uploadBtn" onclick="uploadDocument()">PDF Google Drive मध्ये अपलोड करा</button>
+    <div id="uploadStatus" class="status hidden"></div>
+    <p class="hint">अपलोड झाल्यानंतर नोंद UploadLog शीटमध्ये होईल. सार्वजनिक Drive लिंक तयार केली जात नाही; प्रवेश संस्थेच्या Google खात्यांद्वारे नियंत्रित ठेवा.</p>
+  </div>
+
+  <div class="card hidden" id="adminCard">
+    <h3>प्रशासन — कागदपत्र प्रकार</h3>
+    <div class="grid">
+      <div><label for="newDocName">नवीन कागदपत्र प्रकार</label><input id="newDocName" placeholder="उदा. नियुक्ती आदेश"></div>
+      <div><label for="newDocCategory">विभाग / वर्ग</label><input id="newDocCategory" placeholder="उदा. सेवा विषयक"></div>
+    </div>
+    <div class="row"><button class="primary" onclick="addDocType()">प्रकार जोडा</button></div>
+    <div id="adminTypes"></div>
+    <p class="hint">कागदपत्र प्रकार कायमस्वरूपी delete करण्याऐवजी निष्क्रिय केला जातो, त्यामुळे जुन्या नोंदींची अखंडता राखली जाते.</p>
+    <div id="adminStatus" class="status hidden"></div>
+  </div>
+</div>
+
+<script>
+let appData = null;
+let scannedBlob = null;
+let scannedName = '';
+
+function showStatus(id, message, type='ok') {
+  const el = document.getElementById(id);
+  el.textContent = message;
+  el.className = 'status ' + type;
+  el.classList.remove('hidden');
+}
+function hideStatus(id){ document.getElementById(id).classList.add('hidden'); }
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function loadData(){
+  google.script.run.withSuccessHandler(data => {
+    appData = data;
+    document.getElementById('signedIn').textContent = 'लॉगिन: ' + data.email + ' • भूमिका: ' + data.role;
+    fillSelect('school', data.schools, 'id', 'name', 'शाळा निवडा');
+    fillSelect('docType', data.documentTypes, 'id', 'name', 'कागदपत्र प्रकार निवडा');
+    document.getElementById('school').addEventListener('change', onSchoolChange);
+    if(data.role === 'ADMIN'){
+      document.getElementById('adminCard').classList.remove('hidden');
+      loadAdminTypes();
+    }
+    checkScanner();
+  }).withFailureHandler(err => {
+    document.getElementById('signedIn').textContent = 'प्रवेश त्रुटी: ' + (err.message || err);
+    showStatus('uploadStatus', err.message || String(err), 'err');
+  }).getInitialData();
+}
+function fillSelect(id, items, valueKey, labelKey, placeholder){
+  const s = document.getElementById(id);
+  s.innerHTML = '<option value="">' + esc(placeholder) + '</option>';
+  items.forEach(item => { const o=document.createElement('option'); o.value=item[valueKey]; o.textContent=item[labelKey]; s.appendChild(o); });
+}
+function onSchoolChange(){
+  const schoolId = document.getElementById('school').value;
+  const employees = (appData?.employees || []).filter(e => e.schoolId === schoolId);
+  fillSelect('employee', employees, 'id', 'name', 'कर्मचारी निवडा');
+  document.getElementById('employee').disabled = !schoolId;
+  document.getElementById('shalarth').value = '';
+  document.getElementById('employee').onchange = function(){
+    const e = employees.find(x => x.id === this.value);
+    document.getElementById('shalarth').value = e ? e.id : '';
+  };
+}
+
+async function checkScanner(){
+  try {
+    const r = await fetch('http://127.0.0.1:8765/health', {method:'GET', cache:'no-store'});
+    if(!r.ok) throw new Error('not ready');
+    const data = await r.json();
+    document.getElementById('scannerState').textContent = data.naps2 ? 'स्कॅनिंग सहाय्यक तयार' : 'NAPS2 सापडले नाही';
+  } catch(e) {
+    document.getElementById('scannerState').textContent = 'स्थानिक सहाय्यक सुरू नाही';
+  }
+}
+async function scanDocument(){
+  hideStatus('scanStatus');
+  const schoolId = document.getElementById('school').value;
+  const shalarth = document.getElementById('shalarth').value;
+  const docId = document.getElementById('docType').value;
+  if(!schoolId || !shalarth || !docId){ showStatus('scanStatus','स्कॅन करण्यापूर्वी शाळा, कर्मचारी आणि कागदपत्र प्रकार निवडा.','err'); return; }
+  const btn = document.getElementById('scanBtn'); btn.disabled=true; btn.textContent='स्कॅन सुरू आहे…';
+  try {
+    const r = await fetch('http://127.0.0.1:8765/scan', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({schoolId, shalarthId:shalarth, docId})
+    });
+    if(!r.ok){ let t=''; try{t=(await r.json()).error || ''}catch(_){} throw new Error(t || 'स्कॅनिंग अयशस्वी. NAPS2/स्कॅनर तपासा.'); }
+    scannedBlob = await r.blob();
+    if(scannedBlob.type && !scannedBlob.type.includes('pdf')) throw new Error('स्कॅनरकडून PDF प्राप्त झाली नाही.');
+    const e = appData.employees.find(x=>x.id===shalarth);
+    const d = appData.documentTypes.find(x=>x.id===docId);
+    scannedName = safeFileName(shalarth+'_'+(d?.name||'Document')+'_'+new Date().toISOString().slice(0,10)+'.pdf');
+    const url = URL.createObjectURL(scannedBlob);
+    const a = document.createElement('a'); a.href=url; a.download=scannedName; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 30000);
+    document.getElementById('pdfFile').value = '';
+    document.getElementById('fileStatus').textContent = 'स्कॅन PDF तयार: '+scannedName+' ('+(scannedBlob.size/1024/1024).toFixed(2)+' MB). लोकल Downloads मध्ये सेव्ह करण्याची विनंती ब्राउझरला दिली.';
+    showStatus('scanStatus','स्कॅन यशस्वी. PDF लोकलमध्ये डाउनलोड केली आहे. आता Google Drive अपलोड करा.','ok');
+  } catch(e) {
+    showStatus('scanStatus','स्कॅनिंग त्रुटी: '+e.message,'err');
+  } finally { btn.disabled=false; btn.textContent='स्कॅन करा आणि PDF तयार करा'; }
+}
+function safeFileName(s){return String(s).replace(/[\\/:*?"<>|]/g,'_');}
+document.getElementById('pdfFile').addEventListener('change', function(){
+  scannedBlob=null; scannedName='';
+  const f=this.files[0];
+  document.getElementById('fileStatus').textContent = f ? (f.name+' • '+(f.size/1024/1024).toFixed(2)+' MB') : 'अद्याप PDF निवडलेली नाही.';
+});
+
+async function uploadDocument(){
+  hideStatus('uploadStatus');
+  const schoolId=document.getElementById('school').value;
+  const shalarthId=document.getElementById('shalarth').value;
+  const docId=document.getElementById('docType').value;
+  const file=document.getElementById('pdfFile').files[0];
+  const blob = file || scannedBlob;
+  const fileName = file ? file.name : scannedName;
+  if(!schoolId || !shalarthId || !docId){showStatus('uploadStatus','शाळा, कर्मचारी आणि कागदपत्र प्रकार निवडा.','err');return;}
+  if(!blob){showStatus('uploadStatus','प्रथम स्कॅन करा किंवा PDF निवडा.','err');return;}
+  if(file && !/\.pdf$/i.test(file.name)){showStatus('uploadStatus','फक्त PDF फाइल निवडा.','err');return;}
+  if(blob.size > 10*1024*1024){showStatus('uploadStatus','PDF 10 MB पेक्षा मोठी आहे. कृपया लहान भागांमध्ये स्कॅन करा.','err');return;}
+  const btn=document.getElementById('uploadBtn');btn.disabled=true;btn.textContent='अपलोड होत आहे…';
+  try{
+    const dataUrl = await new Promise((resolve,reject)=>{
+      const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('PDF वाचता आली नाही.'));reader.readAsDataURL(blob);
+    });
+    const base64 = dataUrl.split(',')[1];
+    const payload={schoolId,shalarthId,docId,fileName:fileName||'document.pdf',mimeType:'application/pdf',base64,sizeBytes:blob.size};
+    google.script.run.withSuccessHandler(result=>{
+      showStatus('uploadStatus',result.message+'\nफाइल: '+result.fileName+'\nDrive File ID: '+result.driveFileId,'ok');
+      btn.disabled=false;btn.textContent='PDF Google Drive मध्ये अपलोड करा';
+    }).withFailureHandler(err=>{
+      showStatus('uploadStatus','अपलोड त्रुटी: '+(err.message||err),'err');
+      btn.disabled=false;btn.textContent='PDF Google Drive मध्ये अपलोड करा';
+    }).uploadPdf(payload);
+  }catch(e){
+    showStatus('uploadStatus','अपलोड त्रुटी: '+e.message,'err');
+    btn.disabled=false;btn.textContent='PDF Google Drive मध्ये अपलोड करा';
+  }
+}
+
+function loadAdminTypes(){
+  google.script.run.withSuccessHandler(rows=>{
+    const target=document.getElementById('adminTypes');
+    target.innerHTML='';
+    rows.forEach(r=>{
+      const div=document.createElement('div');div.className='row';div.style.borderTop='1px solid #e5eaf0';div.style.padding='8px 0';
+      const label=document.createElement('span');label.style.flex='1';label.textContent=r.Document_Name+' ('+r.Doc_ID+') — '+(String(r.Active).toLowerCase()==='true'?'सक्रिय':'निष्क्रिय');
+      const b=document.createElement('button');b.className=String(r.Active).toLowerCase()==='true'?'danger':'secondary';b.textContent=String(r.Active).toLowerCase()==='true'?'निष्क्रिय करा':'पुन्हा सक्रिय करा';
+      b.onclick=()=>google.script.run.withSuccessHandler(res=>{showStatus('adminStatus',res.message,'ok');loadAdminTypes();loadDataRefreshTypes();}).withFailureHandler(err=>showStatus('adminStatus',err.message||String(err),'err')).setDocumentTypeActive(r.Doc_ID,String(r.Active).toLowerCase()!=='true');
+      div.appendChild(label);div.appendChild(b);target.appendChild(div);
+    });
+  }).withFailureHandler(err=>showStatus('adminStatus',err.message||String(err),'err')).getDocumentTypesForAdmin();
+}
+function addDocType(){
+  const documentName=document.getElementById('newDocName').value.trim();
+  const category=document.getElementById('newDocCategory').value.trim();
+  google.script.run.withSuccessHandler(res=>{
+    showStatus('adminStatus',res.message,'ok');document.getElementById('newDocName').value='';document.getElementById('newDocCategory').value='';
+    loadAdminTypes();loadDataRefreshTypes();
+  }).withFailureHandler(err=>showStatus('adminStatus',err.message||String(err),'err')).saveDocumentType({documentName,category});
+}
+function loadDataRefreshTypes(){
+  google.script.run.withSuccessHandler(data=>{
+    appData.documentTypes=data.documentTypes;
+    fillSelect('docType',data.documentTypes,'id','name','कागदपत्र प्रकार निवडा');
+  }).getInitialData();
+}
+loadData();
+</script>
+</body>
+</html>
